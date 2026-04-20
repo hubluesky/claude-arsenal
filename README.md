@@ -70,8 +70,8 @@ claude-arsenal/
 
 ## 为什么这样拆？
 
-- **三个独立 plugin 而非单 plugin 三 skill**：用户可按需安装（只想要 `fix` 的人不会被迫装 `cocos-cli`），各自独立版本，升级互不干扰，未来加任何类型的 skill 都能自然归位。
-- **hubluesky 是 marketplace 命名空间**：通过 `hubluesky/claude-arsenal` 安装后，skill 名字就是原名（`fix`、`quick-fix`、`cocos-cli`），不加前缀。
+- **每个 skill 独立 plugin**：用户可按需安装（只想要 `fix` 的人不会被迫装 `quick-fix`），各自独立版本，升级互不干扰，未来加任何类型的 skill 都能自然归位。
+- **hubluesky 是 marketplace 命名空间**：通过 `hubluesky/claude-arsenal` 安装后，skill 名字就是原名（`fix`、`quick-fix`），不加前缀。
 
 ## 开发者：怎么加新 Skill
 
