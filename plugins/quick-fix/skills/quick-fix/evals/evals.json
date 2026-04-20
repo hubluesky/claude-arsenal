@@ -1,0 +1,209 @@
+{
+  "skill_name": "quick-fix",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我有个 CocosCreator 的 Playable 项目，在 src/game/GameManager.ts 里有个 initScene 方法，调用了 this.loadAssets() 之后直接执行 this.startGame()，但是 startGame 里用到的资源有时候还没加载完就开始了，导致偶发性白屏。帮我修一下。",
+      "expected_output": "Agent should: 1) Read GameManager.ts first before proposing any fix, 2) Trace loadAssets and startGame call chain, 3) Identify root cause (async timing issue), 4) Present a fix plan with checklist before editing, 5) Not just add try-catch around startGame",
+      "files": [],
+      "assertions": [
+        {
+          "type": "transcript_contains",
+          "text": "Read",
+          "description": "Must Read the file before modifying"
+        },
+        {
+          "type": "transcript_pattern",
+          "pattern": "(async|await|Promise|callback)",
+          "description": "Root cause analysis should identify async timing issue"
+        },
+        {
+          "type": "transcript_not_contains",
+          "text": "try-catch",
+          "description": "Should NOT propose try-catch as the fix (symptom patch)"
+        },
+        {
+          "type": "transcript_contains",
+          "text": "验收表",
+          "description": "Must output a verification table before claiming done"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "帮我在 src/ui/Dialog.ts 里加一个关闭按钮的动画效果，点击关闭按钮时先播放一个缩小动画再关闭弹窗。",
+      "expected_output": "Agent should: 1) Read Dialog.ts to understand current implementation, 2) Check how close button currently works, 3) Propose a specific plan (what animation, duration, easing), 4) Create checklist, 5) After implementation run build to verify",
+      "files": [],
+      "assertions": [
+        {
+          "type": "transcript_contains",
+          "text": "Read",
+          "description": "Must Read the file before modifying"
+        },
+        {
+          "type": "transcript_pattern",
+          "pattern": "(checklist|清单|TaskCreate)",
+          "description": "Must create a plan checklist before executing"
+        },
+        {
+          "type": "transcript_contains",
+          "text": "验收表",
+          "description": "Must output a verification table before claiming done"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "项目 build 之后报了个 TypeError: Cannot read properties of undefined (reading 'getComponent') 的错误，stack trace 指向 src/game/EntityPool.ts:42。帮我看看怎么回事。",
+      "expected_output": "Agent should: 1) Read EntityPool.ts first, 2) Look at line 42 and trace what's undefined, 3) Grep for getComponent calls and the object being accessed, 4) Identify root cause (likely accessing destroyed/recycled node), 5) NOT just add a null check at line 42 - should find why the object is undefined",
+      "files": [],
+      "assertions": [
+        {
+          "type": "transcript_contains",
+          "text": "Read",
+          "description": "Must Read EntityPool.ts before proposing fix"
+        },
+        {
+          "type": "transcript_contains",
+          "text": "Grep",
+          "description": "Must Grep to trace call chain"
+        },
+        {
+          "type": "transcript_pattern",
+          "pattern": "(根因|root cause|为什么|why)",
+          "description": "Must investigate root cause, not just patch symptom"
+        },
+        {
+          "type": "transcript_contains",
+          "text": "验收表",
+          "description": "Must output a verification table before claiming done"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "帮我把 src/utils/MathHelper.ts 里的 lerp 函数改成支持 clamp 参数，默认 true，为 true 时把结果限制在 [a, b] 范围内。同时更新 src/game/CameraController.ts 里所有调用 lerp 的地方，确保行为不变。",
+      "expected_output": "Agent should: 1) Read both files, 2) Understand current lerp signature and all call sites, 3) Plan: modify lerp + update callers, 4) Execute changes, 5) Run FULL verification: build + lint + tests + checklist review + regression check, outputting complete verification table with all 5 items filled",
+      "files": [],
+      "assertions": [
+        {
+          "type": "transcript_contains",
+          "text": "MathHelper.ts",
+          "description": "Must Read MathHelper.ts"
+        },
+        {
+          "type": "transcript_contains",
+          "text": "CameraController.ts",
+          "description": "Must Read CameraController.ts"
+        },
+        {
+          "type": "transcript_pattern",
+          "pattern": "验收表|验证表|Verification",
+          "description": "Must output verification table"
+        },
+        {
+          "type": "verification_table_complete",
+          "required_items": ["Build", "Lint", "Tests", "变更清单", "回归"],
+          "description": "Verification table must have all 5 items filled (no '?' remaining)"
+        },
+        {
+          "type": "transcript_pattern",
+          "pattern": "(PASS|FAIL|SKIP).*(PASS|FAIL|SKIP).*(PASS|FAIL|SKIP)",
+          "description": "Multiple verification items must have explicit status, not just one"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "我们是有自动设置 session title 的功能的？为什么新建会话后标题栏显示的是 'New conversation' 而不是自动生成的标题？",
+      "expected_output": "This is a QUESTION (contains '为什么'). Agent MUST: 1) Read TopBar.ts and SessionManager.ts, 2) Investigate and ANSWER the question explaining why the title shows 'New conversation', 3) Ask the user '需要我修复这个问题吗？' BEFORE making any code changes. Agent must NOT proceed to fix without user confirmation.",
+      "files": [
+        "evals/test-project/src/ui/TopBar.ts",
+        "evals/test-project/src/managers/SessionManager.ts"
+      ],
+      "assertions": [
+        {
+          "type": "transcript_contains",
+          "text": "Read",
+          "description": "Must Read the relevant files to investigate"
+        },
+        {
+          "type": "transcript_pattern",
+          "pattern": "(为什么|原因|because|reason|empty string|空字符串|fallback|\\|\\|)",
+          "description": "Must explain WHY the title shows 'New conversation' (answer the question)"
+        },
+        {
+          "type": "transcript_pattern",
+          "pattern": "(需要我修复|要我修|是否.*修|want me to fix|要不要.*改|需要.*修)",
+          "description": "Must ask user for confirmation before fixing (this is a question, not a fix request)"
+        },
+        {
+          "type": "transcript_not_contains",
+          "text": "验收表",
+          "description": "Should NOT have a verification table — should not have made any code changes without user confirmation"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "SaveButton.ts 里保存功能的类型定义有问题，帮我修复一下类型错误。",
+      "expected_output": "User says 'fix type error' but the real bug is addEventListener using wrong event type 'onclick' instead of 'click' (a logic bug, not a TypeScript type error). Agent MUST: 1) Read SaveButton.ts, 2) Write comparison statement showing X ≠ Y (user says type error, actual issue is wrong event name), 3) STOP and ask user to clarify before fixing.",
+      "files": [
+        "evals/test-project/src/ui/SaveButton.ts",
+        "evals/test-project/src/managers/DataStore.ts"
+      ],
+      "assertions": [
+        {
+          "type": "transcript_contains",
+          "text": "Read",
+          "description": "Must Read SaveButton.ts first"
+        },
+        {
+          "type": "transcript_pattern",
+          "pattern": "(用户描述.*问题|用户.*说|用户.*要求)",
+          "description": "Must write the mandatory comparison statement (what user described)"
+        },
+        {
+          "type": "transcript_pattern",
+          "pattern": "(我.*诊断|我.*发现|实际.*问题|onclick|click)",
+          "description": "Must write what was actually found (the onclick vs click issue)"
+        },
+        {
+          "type": "transcript_pattern",
+          "pattern": "(确认|clarif|你.*意思|是否|想要|≠|不一致|不同)",
+          "description": "Must ask user for clarification since diagnosis differs from user description"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "SaveButton.ts 里 addEventListener 用了错误的事件名 'onclick'，应该是 'click'。帮我改过来。",
+      "expected_output": "User's description matches the actual bug exactly. Agent should: 1) Read SaveButton.ts, 2) Write comparison statement showing X == Y, 3) Proceed normally through Phase 2-5 without stopping to ask.",
+      "files": [
+        "evals/test-project/src/ui/SaveButton.ts"
+      ],
+      "assertions": [
+        {
+          "type": "transcript_contains",
+          "text": "Read",
+          "description": "Must Read SaveButton.ts first"
+        },
+        {
+          "type": "transcript_pattern",
+          "pattern": "(用户描述.*问题|用户.*说)",
+          "description": "Must write the mandatory comparison statement"
+        },
+        {
+          "type": "transcript_pattern",
+          "pattern": "(onclick.*click|事件名|event name)",
+          "description": "Must identify the onclick vs click issue"
+        },
+        {
+          "type": "transcript_not_contains",
+          "text": "确认一下",
+          "description": "Should NOT ask for unnecessary clarification when diagnosis matches user description"
+        }
+      ]
+    }
+  ]
+}

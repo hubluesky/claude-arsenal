@@ -1,0 +1,19 @@
+{
+    "name": "quick-fix",
+    "version": "0.1.0",
+    "description": "修改代码时强制触发的工作流。Fix / debug / optimize / refactor / 加功能 / UI 调整 / 布局对齐 / 设计稿还原 / 迁移 / 测试修复全场景覆盖。同会话多轮修复按 L0→L4 阶梯加重调查深度；新 bug 重置到 L0。不适用于纯只读任务。",
+    "author": {
+        "name": "hubluesky",
+        "url": "https://github.com/hubluesky"
+    },
+    "repository": "https://github.com/hubluesky/claude-arsenal",
+    "license": "MIT",
+    "keywords": [
+        "code-modification",
+        "refactor",
+        "bug-fix",
+        "ui-adjustment",
+        "design-to-code",
+        "workflow"
+    ]
+}

@@ -1,0 +1,10 @@
+.DS_Store
+Thumbs.db
+*.log
+node_modules/
+.vscode/
+.idea/
+
+# skill 本地运行时产物（skill 自己的 workspace 不该进仓库）
+plugins/**/skills/**/workspace/
+plugins/**/skills/**/iteration-*/

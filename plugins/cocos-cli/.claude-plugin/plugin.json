@@ -1,0 +1,18 @@
+{
+    "name": "cocos-cli",
+    "version": "0.1.0",
+    "description": "Cocos Creator CLI — 编译、预览、构建 Cocos Creator 3.8.7 项目。仅通过 /cocos-cli 手动调用。",
+    "author": {
+        "name": "hubluesky",
+        "url": "https://github.com/hubluesky"
+    },
+    "repository": "https://github.com/hubluesky/claude-arsenal",
+    "license": "MIT",
+    "keywords": [
+        "cocos",
+        "cocos-creator",
+        "game-dev",
+        "build",
+        "cli"
+    ]
+}
