@@ -2,13 +2,18 @@
 
 > Claude Code 技能武器库 — 个人自用的高纪律工作流 skill 集合，以 Marketplace 形式发布，方便安装和持续更新。
 
-## 已收录 Skill
+## 已收录 Skill（可安装）
 
 | Skill | 触发 | 说明 |
 |---|---|---|
-| **cocos-cli** | `/cocos-cli` | Cocos Creator 3.8.7 编译、预览、构建 CLI 包装 |
 | **fix** | `/fix` | 纪律性 Bug 修复。强制根因分析，零猜测执行。5+1 阶段主流程：研究门控 → 根因调查 → 模式分析 → 假设验证 → 实现修复 → 防御加固 |
 | **quick-fix** | 自动 / `/quick-fix` | 改代码时强制触发的工作流，L0→L4 阶梯调查深度，覆盖 fix/debug/optimize/refactor/UI 调整/设计稿还原/迁移/测试修复全场景 |
+
+## 待发布 Skill（源码已收录，未上架 marketplace）
+
+| Skill | 状态 | 阻塞项 |
+|---|---|---|
+| **cocos-cli** | WIP | 依赖外部 Node CLI（`cocos` 命令），CLI 本身需要先发布为独立 npm 包或 GitHub 仓库，之后才能上架 |
 
 未来会持续增补更多 skill（类型和功能不限）。
 
@@ -25,7 +30,6 @@
 ```bash
 /plugin install fix@claude-arsenal
 /plugin install quick-fix@claude-arsenal
-/plugin install cocos-cli@claude-arsenal
 ```
 
 ### 更新
