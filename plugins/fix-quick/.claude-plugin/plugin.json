@@ -1,0 +1,19 @@
+{
+    "name": "fix-quick",
+    "version": "0.2.0",
+    "description": "极轻快修。修改代码时的默认技能。Fix, debug, optimize, refactor, adjust UI/layout, match designs, small changes. 极轻模式：单行对齐 sentinel，L0/L1/L2 阶梯，不做多模型分派。连续 2 次失败（L2）硬停后弹用户选择：升级 fix-deep / 再试一次 / 取消。",
+    "author": {
+        "name": "hubluesky",
+        "url": "https://github.com/hubluesky"
+    },
+    "repository": "https://github.com/hubluesky/claude-arsenal",
+    "license": "MIT",
+    "keywords": [
+        "code-modification",
+        "refactor",
+        "bug-fix",
+        "ui-adjustment",
+        "design-to-code",
+        "workflow"
+    ]
+}

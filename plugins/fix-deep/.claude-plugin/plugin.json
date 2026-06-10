@@ -1,0 +1,19 @@
+{
+    "name": "fix-deep",
+    "version": "0.2.0",
+    "description": "重量深修。单 Agent 跑完 Phase 0-5 + L0-L4 阶梯 + Heavy 对齐（sentinel 含变更范围/根因/修法/死代码清单）+ 证据对称强制 + 最小修改（含死代码清理）。仅手动 /fix-deep 触发，或 fix-quick L2 用户选择升级时激活。",
+    "author": {
+        "name": "hubluesky",
+        "url": "https://github.com/hubluesky"
+    },
+    "repository": "https://github.com/hubluesky/claude-arsenal",
+    "license": "MIT",
+    "keywords": [
+        "bug-fix",
+        "root-cause-analysis",
+        "debugging",
+        "discipline",
+        "anti-slop",
+        "rigor"
+    ]
+}

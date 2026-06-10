@@ -1,26 +1,26 @@
 {
     "name": "claude-arsenal",
-    "description": "Claude Code 技能武器库 — 作者自用的高纪律工作流 skill 集合。现含 fix（根因驱动的严谨修 bug 流）、quick-fix（强制触发的改代码工作流）。持续增补中。",
+    "description": "Claude Code 技能武器库 — 作者自用的高纪律工作流 skill 集合。现含 fix-deep（根因驱动的严谨修 bug 流）、fix-quick（极轻快修，改代码时默认触发）。持续增补中。",
     "owner": {
         "name": "hubluesky",
         "url": "https://github.com/hubluesky"
     },
     "plugins": [
         {
-            "name": "fix",
-            "description": "纪律性 Bug 修复。强制根因分析，零猜测执行。没有证据不提出修复，没有验证不声称理解，没有根因不开始修改。仅通过 /fix 手动调用。",
-            "version": "0.1.0",
-            "source": "./plugins/fix",
+            "name": "fix-deep",
+            "description": "重量深修。强制根因分析，零猜测执行。Phase 0-5 + L0-L4 阶梯 + Heavy 对齐 + 证据对称强制 + 死代码清理。仅通过 /fix-deep 手动调用，或 fix-quick L2 用户升级时激活。",
+            "version": "0.2.0",
+            "source": "./plugins/fix-deep",
             "author": {
                 "name": "hubluesky",
                 "url": "https://github.com/hubluesky"
             }
         },
         {
-            "name": "quick-fix",
-            "description": "修改代码时强制触发的工作流。覆盖 fix / debug / optimize / refactor / UI 调整 / 设计稿还原 / 迁移 / 测试修复等所有改码场景。L0→L4 阶梯加重调查深度。",
-            "version": "0.1.0",
-            "source": "./plugins/quick-fix",
+            "name": "fix-quick",
+            "description": "极轻快修，改代码时强制触发。覆盖 fix/debug/optimize/refactor/UI 调整/设计稿还原/迁移/测试修复全场景。L0→L1→L2 阶梯，L2 硬停弹用户选择。",
+            "version": "0.2.0",
+            "source": "./plugins/fix-quick",
             "author": {
                 "name": "hubluesky",
                 "url": "https://github.com/hubluesky"

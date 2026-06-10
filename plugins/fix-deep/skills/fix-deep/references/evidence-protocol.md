@@ -69,3 +69,32 @@
 - **Phase 2**：每发现一个差异，记录到 Evidence Ledger
 - **Phase 3**：假设形成时，引用 Evidence Ledger 中的证据
 - **Phase 4**：修改代码时，使用 Evidence Linking 格式关联证据
+
+---
+
+## Fix-Deep 执行补充（Plan Task 3 Step 5 追加）
+
+### 工具类别（凡归入此类都触发对称义务）
+
+- Chrome DevTools MCP (`mcp__chrome-devtools__*`) 截图/快照/lighthouse
+- Playwright MCP 或 `playwright-cli` / `npx playwright`（test --screenshot、codegen、show-trace）
+- Puppeteer / Cypress / Selenium / WebdriverIO 脚本
+- Pencil MCP (`mcp__pencil__*`) 截图/导出
+- Cocos Game Intelligence MCP 场景树/快照
+- Vibe-Eyes
+- 读取 `.png` / `.jpg` / `.webp` / `.mp4` / `.har` / `playwright-report/**` 作为证据
+
+### Phase 4 执行
+
+1. 记录发现 bug 时使用的工具链
+2. 修复后调用同类工具产生"修复后"证据
+3. 与"修复前"做显式对比（并排截图、trace diff、日志 diff 等）
+4. 命令行验收（build/lint/test）**额外**要做，不能代替可视化收尾
+
+### 命令行验收即足够的场景
+
+- 逻辑纯单元测试（无视觉/交互产物）
+- 纯字符串处理 / 纯数据变换
+- CLI 工具
+
+这些场景 Phase 4 可以只做 build/lint/test。
