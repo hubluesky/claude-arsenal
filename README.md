@@ -9,13 +9,6 @@
 | **fix-quick** | 自动 / `/fix-quick` | 极轻快修，改代码时默认触发。覆盖 fix/debug/optimize/refactor/UI 调整/设计稿还原/迁移/测试修复全场景。L0→L1→L2 阶梯，L2 硬停弹用户选择 |
 | **fix-deep** | `/fix-deep` | 重量深修。强制根因分析，零猜测执行。Phase 0-5 + L0-L4 阶梯 + Heavy 对齐 + 证据对称强制 + 死代码清理。仅手动调用或 fix-quick L2 升级时激活 |
 
-## 待发布 Skill（源码已收录，未上架 marketplace）
-
-| Skill | 状态 | 阻塞项 |
-|---|---|---|
-| **cocos-cli** | WIP | 依赖外部 Node CLI（`cocos` 命令），CLI 本身需要先发布为独立 npm 包或 GitHub 仓库，之后才能上架 |
-
-未来会持续增补更多 skill（类型和功能不限）。
 
 ## 安装
 
@@ -53,9 +46,6 @@ claude-arsenal/
 ├── .claude-plugin/
 │   └── marketplace.json       # 仓库声明，列出所有 plugin
 ├── plugins/
-│   ├── cocos-cli/
-│   │   ├── .claude-plugin/plugin.json
-│   │   └── skills/cocos-cli/SKILL.md
 │   ├── fix-deep/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/fix-deep/
