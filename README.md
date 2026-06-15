@@ -8,6 +8,9 @@
 |---|---|---|
 | **fix-quick** | 自动 / `/fix-quick` | 极轻快修，改代码时默认触发。覆盖 fix/debug/optimize/refactor/UI 调整/设计稿还原/迁移/测试修复全场景。L0→L1→L2 阶梯，L2 硬停弹用户选择 |
 | **fix-deep** | `/fix-deep` | 重量深修。强制根因分析，零猜测执行。Phase 0-5 + L0-L4 阶梯 + Heavy 对齐 + 证据对称强制 + 死代码清理。仅手动调用或 fix-quick L2 升级时激活 |
+| **tts-notify** | 自动(Windows) | TTS 语音通知 hook。Stop / Notification / PermissionRequest / AskUserQuestion 四事件触发,基于 edge-tts 生成中文语音,首次缓存。非 Windows 静默退出 |
+
+> **tts-notify 前置依赖**：仅 Windows;需 Python 3.x、`pip install edge-tts`、`ffmpeg` 在 PATH 中(用于 mp3→wav 转码)。短句首次触发后会缓存到 `~/.claude/cache/tts-notify/`,之后无 ffmpeg 也能播放。缺失依赖时 hook 会回退到 plugin 自带的 3 个 fallback wav,核心流程不受影响。
 
 
 ## 安装
@@ -51,11 +54,17 @@ claude-arsenal/
 │   │   └── skills/fix-deep/
 │   │       ├── SKILL.md
 │   │       └── references/
-│   └── fix-quick/
+│   ├── fix-quick/
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── skills/fix-quick/
+│   │       ├── SKILL.md
+│   │       └── references/
+│   └── tts-notify/
 │       ├── .claude-plugin/plugin.json
-│       └── skills/fix-quick/
-│           ├── SKILL.md
-│           └── references/
+│       └── hooks/
+│           ├── hooks.json
+│           ├── tts_notify.py
+│           └── *_xiaoxiao_pcm.wav (3 个 fallback)
 ├── LICENSE
 └── README.md
 ```

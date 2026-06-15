@@ -1,0 +1,19 @@
+{
+    "name": "tts-notify",
+    "version": "0.1.0",
+    "description": "Windows 端 TTS 语音通知 hook。在 Stop / Notification / PermissionRequest / AskUserQuestion 四个事件触发,基于 edge-tts 生成中文语音并播放,首次缓存到 ~/.claude/cache/tts-notify/。Stop 事件根据助手最后一条消息动态生成上下文语音(如 \"代码已提交\"、\"修复完成了\"等);其他事件用预生成短句。非 Windows 平台静默退出。",
+    "author": {
+        "name": "hubluesky",
+        "url": "https://github.com/hubluesky"
+    },
+    "repository": "https://github.com/hubluesky/claude-arsenal",
+    "license": "MIT",
+    "keywords": [
+        "tts",
+        "voice-notification",
+        "hook",
+        "edge-tts",
+        "windows",
+        "ergonomics"
+    ]
+}
