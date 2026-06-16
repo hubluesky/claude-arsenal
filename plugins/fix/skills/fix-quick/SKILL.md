@@ -115,7 +115,7 @@ Sentinel 范围控制：
    - **在 fix-quick 内再试一次** — 用户给出新方向/新线索后，按 L1 风格换思路重走一遍 fix-quick
    - **取消** — 停手，等用户进一步指示
 4. **按用户选择执行**：
-   - 选"升级 fix-deep" → 调用 `Skill(fix-deep)`，把 `<details>` 内的汇总作为 prompt 前缀
+   - 选"升级 fix-deep" → 调用 `Skill(fix:fix-deep)`，把 `<details>` 内的汇总作为 prompt 前缀
    - 选"再试一次" → 用户必须先给出新方向或新线索；之后按 L1 流程换假设重走 Phase 0–4
    - 选"取消" → 本轮 fix-quick 终止，不做任何代码修改
 

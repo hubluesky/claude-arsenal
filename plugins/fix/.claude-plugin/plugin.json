@@ -1,0 +1,19 @@
+{
+    "name": "fix",
+    "version": "0.3.0",
+    "description": "修 bug 技能组。含 fix-quick（极轻快修，改代码时默认触发）与 fix-deep（重量深修，根因驱动零猜测）。fix-quick L0/L1/L2 阶梯，L2 硬停弹用户选择是否升级 fix-deep。",
+    "author": {
+        "name": "hubluesky",
+        "url": "https://github.com/hubluesky"
+    },
+    "repository": "https://github.com/hubluesky/claude-arsenal",
+    "license": "MIT",
+    "keywords": [
+        "code-modification",
+        "refactor",
+        "bug-fix",
+        "root-cause-analysis",
+        "debugging",
+        "workflow"
+    ]
+}
