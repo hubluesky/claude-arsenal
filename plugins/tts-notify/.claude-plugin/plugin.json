@@ -1,7 +1,7 @@
 {
     "name": "tts-notify",
-    "version": "0.1.0",
-    "description": "Windows 端 TTS 语音通知 hook。在 Stop / Notification / PermissionRequest / AskUserQuestion 四个事件触发,基于 edge-tts 生成中文语音并播放,首次缓存到 ~/.claude/cache/tts-notify/。Stop 事件根据助手最后一条消息动态生成上下文语音(如 \"代码已提交\"、\"修复完成了\"等);其他事件用预生成短句。非 Windows 平台静默退出。",
+    "version": "0.2.0",
+    "description": "跨平台 TTS 语音通知 hook(Windows / macOS / Linux)。在 Stop / SubagentStop / Notification / PermissionRequest / AskUserQuestion 五个事件触发。装了 edge-tts 时用神经语音(生成 MP3 并缓存到 ~/.claude/cache/tts-notify/),未装/离线/失败时自动回退到系统自带 TTS(Win SAPI / mac say / Linux espeak-ng)。Stop 事件按助手最后一条消息动态生成上下文语音(如 \"代码已提交\"、\"修复完成了\")。无需 ffmpeg。",
     "author": {
         "name": "hubluesky",
         "url": "https://github.com/hubluesky"
@@ -13,6 +13,9 @@
         "voice-notification",
         "hook",
         "edge-tts",
+        "cross-platform",
+        "macos",
+        "linux",
         "windows",
         "ergonomics"
     ]

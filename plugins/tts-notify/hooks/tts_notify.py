@@ -1,37 +1,42 @@
-"""Dynamic TTS notification hook for Claude Code.
+"""Cross-platform TTS notification hook for Claude Code.
 
-Reads hook event JSON from stdin, generates context-aware speech via edge-tts,
-caches WAV files, and plays them with winsound. Falls back to static WAV on failure.
+Reads hook event JSON from stdin and speaks a context-aware Chinese phrase.
+
+Two engines, tried in order:
+  1. edge-tts (optional): neural voice, generates an MP3 (cached), played via a
+     platform-native player. Used when the `edge_tts` package is importable and
+     generation + playback succeed.
+  2. System TTS (fallback, zero-install): Windows SAPI / macOS `say` /
+     Linux espeak-ng|spd-say. Synthesized live, not cached.
+
+No ffmpeg dependency. Works on Windows, macOS and Linux.
 """
 
 import sys
-
-if sys.platform != "win32":
-    sys.exit(0)
-
 import json
 import hashlib
 import os
 import re
 import asyncio
 import subprocess
-import tempfile
-import winsound
 import time
+
+# --- Platform ---
+if sys.platform.startswith("win"):
+    PLATFORM = "win"
+elif sys.platform == "darwin":
+    PLATFORM = "mac"
+else:
+    PLATFORM = "linux"
 
 # --- Config ---
 CACHE_DIR = os.path.join(os.path.expanduser("~"), ".claude", "cache", "tts-notify")
-HOOKS_DIR = os.path.dirname(os.path.abspath(__file__))
 CACHE_MAX = 50
 TTS_TIMEOUT = 2.5
 VOICE = "zh-CN-XiaoxiaoNeural"
 
-FALLBACK_WAV = {
-    "Stop": os.path.join(HOOKS_DIR, "complete_xiaoxiao_pcm.wav"),
-    "Notification": os.path.join(HOOKS_DIR, "notify_xiaoxiao_pcm.wav"),
-    "PreToolUse": os.path.join(HOOKS_DIR, "notify_xiaoxiao_pcm.wav"),
-    "PermissionRequest": os.path.join(HOOKS_DIR, "permission_xiaoxiao_pcm.wav"),
-}
+# Preferred Chinese voice for macOS system TTS fallback (`say -v`).
+MAC_VOICE = "Tingting"
 
 FIXED_TEXTS = {
     "Notification": "需要你来看一下",
@@ -150,11 +155,50 @@ def extract_stop_text(message: str) -> str:
     return prefix.rstrip("，")
 
 
+def read_last_assistant_message(transcript_path: str) -> str:
+    """Extract the last assistant text from the session JSONL transcript."""
+    if not transcript_path or not os.path.isfile(transcript_path):
+        return ""
+    try:
+        with open(transcript_path, "r", encoding="utf-8", errors="replace") as f:
+            lines = f.readlines()
+        for line in reversed(lines):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            # {"type": "assistant", "message": {"content": [{"type": "text", "text": "..."}]}}
+            if obj.get("type") == "assistant":
+                content = obj.get("message", {}).get("content", [])
+                if isinstance(content, list):
+                    texts = [c["text"] for c in content
+                             if isinstance(c, dict) and c.get("type") == "text" and c.get("text")]
+                    if texts:
+                        return "\n".join(texts)
+                elif isinstance(content, str) and content:
+                    return content
+            # {"role": "assistant", "content": ...}
+            elif obj.get("role") == "assistant":
+                content = obj.get("content", "")
+                if isinstance(content, str):
+                    return content
+                if isinstance(content, list):
+                    texts = [c["text"] for c in content
+                             if isinstance(c, dict) and c.get("type") == "text" and c.get("text")]
+                    return "\n".join(texts)
+    except Exception:
+        pass
+    return ""
+
+
 def get_text_for_event(data: dict) -> str:
     event = data.get("hook_event_name", "")
 
-    if event == "Stop":
-        msg = data.get("last_assistant_message", "")
+    if event in ("Stop", "SubagentStop"):
+        msg = read_last_assistant_message(data.get("transcript_path", ""))
         return extract_stop_text(msg)
 
     return FIXED_TEXTS.get(event, "处理完成了")
@@ -162,7 +206,7 @@ def get_text_for_event(data: dict) -> str:
 
 def cache_path_for(text: str) -> str:
     h = hashlib.md5(text.encode("utf-8", errors="replace")).hexdigest()
-    return os.path.join(CACHE_DIR, f"{h}.wav")
+    return os.path.join(CACHE_DIR, f"{h}.mp3")
 
 
 def enforce_cache_limit():
@@ -170,7 +214,7 @@ def enforce_cache_limit():
     try:
         files = []
         for f in os.listdir(CACHE_DIR):
-            if f.endswith(".wav"):
+            if f.endswith(".mp3") or f.endswith(".wav"):
                 fp = os.path.join(CACHE_DIR, f)
                 files.append((os.stat(fp).st_atime, fp))
         if len(files) <= CACHE_MAX:
@@ -182,56 +226,210 @@ def enforce_cache_limit():
         pass
 
 
-async def generate_tts(text: str, wav_path: str) -> bool:
-    """Generate WAV via edge-tts + ffmpeg. Returns True on success."""
-    import edge_tts
+# ---------------------------------------------------------------------------
+# Engine 1: edge-tts (optional neural voice)
+# ---------------------------------------------------------------------------
 
-    tmp_mp3 = wav_path + ".tmp.mp3"
+def edgetts_available() -> bool:
     try:
-        comm = edge_tts.Communicate(text, VOICE)
-        await asyncio.wait_for(comm.save(tmp_mp3), timeout=TTS_TIMEOUT)
-
-        # Convert to WAV with ffmpeg
-        result = subprocess.run(
-            ["ffmpeg", "-y", "-i", tmp_mp3, "-ar", "24000", "-ac", "1",
-             "-sample_fmt", "s16", wav_path],
-            capture_output=True, timeout=3,
-        )
-        return result.returncode == 0
+        import edge_tts  # noqa: F401
+        return True
     except Exception:
         return False
-    finally:
-        if os.path.exists(tmp_mp3):
+
+
+async def _edgetts_save(text: str, mp3_path: str) -> bool:
+    import edge_tts
+    try:
+        comm = edge_tts.Communicate(text, VOICE)
+        await asyncio.wait_for(comm.save(mp3_path), timeout=TTS_TIMEOUT)
+        return os.path.isfile(mp3_path) and os.path.getsize(mp3_path) > 0
+    except Exception:
+        return False
+
+
+def synth_edgetts(text: str, mp3_path: str) -> bool:
+    """Generate an MP3 via edge-tts. Returns True on success."""
+    tmp = mp3_path + ".tmp"
+    try:
+        ok = asyncio.run(_edgetts_save(text, tmp))
+    except Exception:
+        ok = False
+    if ok:
+        try:
+            os.replace(tmp, mp3_path)
+            return True
+        except OSError:
+            pass
+    if os.path.exists(tmp):
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+    return False
+
+
+# ---------------------------------------------------------------------------
+# MP3 playback (platform-native, no ffmpeg)
+# ---------------------------------------------------------------------------
+
+# PowerShell snippet: play an MP3 via WPF MediaPlayer (ships with .NET on
+# Windows), blocking until playback finishes. No external binary needed.
+_WIN_PLAY_PS = (
+    "Add-Type -AssemblyName PresentationCore;"
+    "$p = New-Object System.Windows.Media.MediaPlayer;"
+    "$p.Open([uri]$env:TTS_MP3_URI);"
+    "$n = 0;"
+    "while (-not $p.NaturalDuration.HasTimeSpan -and $n -lt 60) "
+    "{ Start-Sleep -Milliseconds 50; $n++ };"
+    "$ms = if ($p.NaturalDuration.HasTimeSpan) "
+    "{ $p.NaturalDuration.TimeSpan.TotalMilliseconds } else { 4000 };"
+    "$p.Play();"
+    "Start-Sleep -Milliseconds ([int]$ms + 300);"
+    "$p.Stop(); $p.Close()"
+)
+
+
+def _which(name: str) -> bool:
+    from shutil import which
+    return which(name) is not None
+
+
+def play_mp3(path: str) -> bool:
+    """Play an MP3 using a platform-native player. Returns True on success."""
+    if not os.path.isfile(path):
+        return False
+    try:
+        if PLATFORM == "win":
+            uri = "file:///" + os.path.abspath(path).replace("\\", "/")
+            env = dict(os.environ, TTS_MP3_URI=uri)
+            r = subprocess.run(
+                ["powershell", "-NoProfile", "-NonInteractive", "-Sta",
+                 "-Command", _WIN_PLAY_PS],
+                capture_output=True, timeout=15, env=env,
+            )
+            return r.returncode == 0
+        if PLATFORM == "mac":
+            r = subprocess.run(["afplay", path], capture_output=True, timeout=15)
+            return r.returncode == 0
+        # linux: try common players in order
+        for player in ("mpg123", "ffplay", "cvlc", "mpv"):
+            if not _which(player):
+                continue
+            if player == "mpg123":
+                cmd = ["mpg123", "-q", path]
+            elif player == "ffplay":
+                cmd = ["ffplay", "-nodisp", "-autoexit", "-loglevel", "quiet", path]
+            elif player == "cvlc":
+                cmd = ["cvlc", "--play-and-exit", "--intf", "dummy", path]
+            else:  # mpv
+                cmd = ["mpv", "--no-video", "--really-quiet", path]
+            r = subprocess.run(cmd, capture_output=True, timeout=15)
+            return r.returncode == 0
+        return False
+    except Exception:
+        return False
+
+
+# ---------------------------------------------------------------------------
+# Engine 2: system TTS (fallback, zero-install, live synthesis)
+# ---------------------------------------------------------------------------
+
+# PowerShell SAPI: pick a Chinese voice if available, then speak (blocking).
+_WIN_SPEAK_PS = (
+    "Add-Type -AssemblyName System.Speech;"
+    "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer;"
+    "$zh = $s.GetInstalledVoices() | "
+    "Where-Object { $_.VoiceInfo.Culture.Name -like 'zh*' };"
+    "if ($zh) { $s.SelectVoice($zh[0].VoiceInfo.Name) };"
+    "$s.Speak($env:TTS_TEXT); $s.Dispose()"
+)
+
+
+def _voice_exists_mac(voice: str) -> bool:
+    try:
+        r = subprocess.run(["say", "-v", "?"], capture_output=True, timeout=5, text=True)
+        return voice.lower() in (r.stdout or "").lower()
+    except Exception:
+        return False
+
+
+def speak_system(text: str) -> bool:
+    """Speak text via the OS built-in TTS. Returns True on success."""
+    try:
+        if PLATFORM == "win":
+            env = dict(os.environ, TTS_TEXT=text)
+            r = subprocess.run(
+                ["powershell", "-NoProfile", "-NonInteractive",
+                 "-Command", _WIN_SPEAK_PS],
+                capture_output=True, timeout=15, env=env,
+            )
+            return r.returncode == 0
+        if PLATFORM == "mac":
+            cmd = ["say", "-v", MAC_VOICE, text] if _voice_exists_mac(MAC_VOICE) else ["say", text]
+            r = subprocess.run(cmd, capture_output=True, timeout=15)
+            return r.returncode == 0
+        # linux
+        if _which("spd-say"):
+            r = subprocess.run(
+                ["spd-say", "-w", "-l", "zh", text], capture_output=True, timeout=15
+            )
+            if r.returncode == 0:
+                return True
+        if _which("espeak-ng"):
+            r = subprocess.run(
+                ["espeak-ng", "-v", "zh", text], capture_output=True, timeout=15
+            )
+            return r.returncode == 0
+        if _which("espeak"):
+            r = subprocess.run(
+                ["espeak", "-v", "zh", text], capture_output=True, timeout=15
+            )
+            return r.returncode == 0
+        return False
+    except Exception:
+        return False
+
+
+# ---------------------------------------------------------------------------
+# Orchestration
+# ---------------------------------------------------------------------------
+
+def notify(text: str):
+    """Speak `text`: prefer edge-tts (cached MP3), fall back to system TTS."""
+    if edgetts_available():
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        mp3 = cache_path_for(text)
+        if os.path.isfile(mp3):
             try:
-                os.remove(tmp_mp3)
+                os.utime(mp3, (time.time(), os.stat(mp3).st_mtime))
             except OSError:
                 pass
-
-
-def play_wav(path: str):
-    if os.path.isfile(path):
-        try:
-            winsound.PlaySound(path, winsound.SND_FILENAME)
-        except Exception:
-            pass
-
-
-def play_fallback(event: str):
-    fb = FALLBACK_WAV.get(event, FALLBACK_WAV["Stop"])
-    play_wav(fb)
+            if play_mp3(mp3):
+                return
+        else:
+            if synth_edgetts(text, mp3):
+                enforce_cache_limit()
+                if play_mp3(mp3):
+                    return
+    # Fallback: system TTS
+    speak_system(text)
 
 
 def prewarm():
-    """Pre-generate WAV for all fixed phrases."""
+    """Pre-generate edge-tts MP3 for all fixed phrases."""
+    if not edgetts_available():
+        print("edge-tts not installed; nothing to prewarm (system TTS is live).")
+        return
     os.makedirs(CACHE_DIR, exist_ok=True)
     texts = list(FIXED_TEXTS.values()) + [DEFAULT_PREFIX.rstrip("，")]
     for text in texts:
-        wp = cache_path_for(text)
-        if os.path.isfile(wp):
+        mp3 = cache_path_for(text)
+        if os.path.isfile(mp3):
             print(f"[cached] {text}")
             continue
         print(f"[generating] {text} ...", end=" ", flush=True)
-        ok = asyncio.run(generate_tts(text, wp))
+        ok = synth_edgetts(text, mp3)
         print("OK" if ok else "FAIL")
     enforce_cache_limit()
     print("Prewarm done.")
@@ -242,8 +440,6 @@ def main():
         prewarm()
         return
 
-    os.makedirs(CACHE_DIR, exist_ok=True)
-
     # Read event JSON from stdin
     try:
         raw = sys.stdin.read()
@@ -251,27 +447,8 @@ def main():
     except Exception:
         data = {}
 
-    event = data.get("hook_event_name", "Stop")
     text = get_text_for_event(data)
-    wp = cache_path_for(text)
-
-    # Cache hit → play directly
-    if os.path.isfile(wp):
-        # Touch access time for LRU
-        try:
-            os.utime(wp, (time.time(), os.stat(wp).st_mtime))
-        except OSError:
-            pass
-        play_wav(wp)
-        return
-
-    # Cache miss → generate
-    ok = asyncio.run(generate_tts(text, wp))
-    if ok and os.path.isfile(wp):
-        enforce_cache_limit()
-        play_wav(wp)
-    else:
-        play_fallback(event)
+    notify(text)
 
 
 if __name__ == "__main__":

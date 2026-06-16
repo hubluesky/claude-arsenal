@@ -28,8 +28,8 @@
         },
         {
             "name": "tts-notify",
-            "description": "Windows 端 TTS 语音通知 hook。Stop / Notification / PermissionRequest / AskUserQuestion 四个事件触发,基于 edge-tts 生成中文语音。Stop 事件按助手最后消息动态生成。非 Windows 静默退出。",
-            "version": "0.1.0",
+            "description": "跨平台 TTS 语音通知 hook(Win/mac/Linux)。Stop / Notification / PermissionRequest / AskUserQuestion 四事件触发。装了 edge-tts 用神经语音,未装/失败回退系统自带 TTS。Stop 事件按助手最后消息动态生成。无需 ffmpeg。",
+            "version": "0.2.0",
             "source": "./plugins/tts-notify",
             "author": {
                 "name": "hubluesky",

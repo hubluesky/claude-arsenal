@@ -8,9 +8,9 @@
 |---|---|---|
 | **fix-quick** | 自动 / `/fix-quick` | 极轻快修，改代码时默认触发。覆盖 fix/debug/optimize/refactor/UI 调整/设计稿还原/迁移/测试修复全场景。L0→L1→L2 阶梯，L2 硬停弹用户选择 |
 | **fix-deep** | `/fix-deep` | 重量深修。强制根因分析，零猜测执行。Phase 0-5 + L0-L4 阶梯 + Heavy 对齐 + 证据对称强制 + 死代码清理。仅手动调用或 fix-quick L2 升级时激活 |
-| **tts-notify** | 自动(Windows) | TTS 语音通知 hook。Stop / Notification / PermissionRequest / AskUserQuestion 四事件触发,基于 edge-tts 生成中文语音,首次缓存。非 Windows 静默退出 |
+| **tts-notify** | 自动(跨平台) | TTS 语音通知 hook。Stop / Notification / PermissionRequest / AskUserQuestion 四事件触发。装了 edge-tts 用神经语音(缓存 MP3),未装/失败回退系统自带 TTS。Stop 事件按助手最后消息动态生成 |
 
-> **tts-notify 前置依赖**：仅 Windows;需 Python 3.x、`pip install edge-tts`、`ffmpeg` 在 PATH 中(用于 mp3→wav 转码)。短句首次触发后会缓存到 `~/.claude/cache/tts-notify/`,之后无 ffmpeg 也能播放。缺失依赖时 hook 会回退到 plugin 自带的 3 个 fallback wav,核心流程不受影响。
+> **tts-notify 前置依赖**：跨平台(Windows / macOS / Linux),仅需 Python 3.x。`edge-tts` 为**可选增强**——`pip install edge-tts` 后用神经语音(需联网,MP3 缓存到 `~/.claude/cache/tts-notify/`,经各平台原生播放器播放,**已不再需要 ffmpeg**)。未装 edge-tts、离线或生成失败时,自动回退到系统自带 TTS:Windows 用 SAPI(MediaPlayer 播放)、macOS 用 `say`、Linux 用 `espeak-ng` / `spd-say`。Windows/macOS 的系统 TTS 零安装即用;Linux 中文需自行安装 `espeak-ng` 及中文语音数据(或装播放器 `mpg123`/`ffplay` 以走 edge-tts 路径)。
 
 
 ## 安装
@@ -63,8 +63,7 @@ claude-arsenal/
 │       ├── .claude-plugin/plugin.json
 │       └── hooks/
 │           ├── hooks.json
-│           ├── tts_notify.py
-│           └── *_xiaoxiao_pcm.wav (3 个 fallback)
+│           └── tts_notify.py
 ├── LICENSE
 └── README.md
 ```

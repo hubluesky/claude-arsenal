@@ -1,12 +1,24 @@
 {
-  "description": "TTS 语音通知:Stop / Notification / PermissionRequest / AskUserQuestion",
+  "description": "TTS 语音通知:Stop / SubagentStop / Notification / PermissionRequest / AskUserQuestion",
   "hooks": {
     "Stop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/tts_notify.py\""
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/tts_notify.py\"",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/tts_notify.py\"",
+            "async": true
           }
         ]
       }
@@ -16,7 +28,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/tts_notify.py\""
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/tts_notify.py\"",
+            "async": true
           }
         ]
       }
